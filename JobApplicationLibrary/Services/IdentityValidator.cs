@@ -1,6 +1,6 @@
 ﻿namespace JobApplicationLibrary.Services
 {
-    public class IdentityValidator
+    public class IdentityValidator : IIdentityValidator
     {
         public bool IsValid(string identityNumber)
         {
