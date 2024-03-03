@@ -20,6 +20,8 @@ namespace JobApplicationLibrary
             if (form.Applicant.Age < minAge)
                 return ApplicationResult.AutoRejected;
 
+            identityValidator.ValidationMode = form.Applicant.Age > 50 ? ValidationMode.Detailed : ValidationMode.Detailed;
+
             if (identityValidator.CountryDataProvider.CountryData.Country != "Azerbaijan")
                 return ApplicationResult.TransferredToCTO;
 

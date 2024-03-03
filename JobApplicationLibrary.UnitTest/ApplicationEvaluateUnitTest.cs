@@ -6,8 +6,9 @@ namespace JobApplicationLibrary.UnitTest
 {
     public class ApplicationEvaluateUnitTest
     {
-        [Test]
         // UnitOfWork_Condition_ExceptedResult
+
+        [Test]
         public void Application_WithUnderAge_TransferredToAutoRejected()
         {
             // Arrange
@@ -84,7 +85,7 @@ namespace JobApplicationLibrary.UnitTest
         public void Application_WithInValidIdentityNumber_TransferredToHR()
         {
             // Arrange
-            var mockValidator = new Mock<IIdentityValidator>(MockBehavior.Strict);
+            var mockValidator = new Mock<IIdentityValidator>();
             mockValidator.DefaultValue = DefaultValue.Mock;
             mockValidator.Setup(i => i.IsValid(It.IsAny<string>())).Returns(false);
             mockValidator.Setup(i => i.CheckConnectionToRemoteServer()).Returns(false);
@@ -135,6 +136,31 @@ namespace JobApplicationLibrary.UnitTest
 
             // Assert
             Assert.AreEqual(ApplicationResult.TransferredToCTO, appResult);
+        }
+
+        [Test]
+        public void Application_WithOver50_ValidationModeToDetailed()
+        {
+            // Arrange
+            var mockValidator = new Mock<IIdentityValidator>();
+            mockValidator.SetupAllProperties();
+            mockValidator.Setup(i => i.CountryDataProvider.CountryData.Country).Returns("Turkey");
+            //mockValidator.SetupProperty(i => i.ValidationMode);
+
+            var evaluator = new ApplicationEvaluator(mockValidator.Object);
+            var form = new JobApplication()
+            {
+                Applicant = new Applicant()
+                {
+                    Age = 51
+                }
+            };
+
+            // Action
+            var appResult = evaluator.Evaluate(form);
+
+            // Assert
+            Assert.AreEqual(ValidationMode.Detailed, mockValidator.Object.ValidationMode);
         }
     }
 }
