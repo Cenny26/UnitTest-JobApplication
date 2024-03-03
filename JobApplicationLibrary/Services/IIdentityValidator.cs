@@ -4,5 +4,6 @@
     {
         bool IsValid(string identityNumber);
         bool CheckConnectionToRemoteServer();
+        ICountryDataProvider CountryDataProvider { get; }
     }
 }

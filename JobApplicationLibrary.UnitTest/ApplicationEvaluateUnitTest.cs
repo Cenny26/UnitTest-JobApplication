@@ -24,7 +24,7 @@ namespace JobApplicationLibrary.UnitTest
             var appResult = evaluator.Evaluate(form);
 
             // Assert
-            Assert.AreEqual(appResult, ApplicationResult.AutoRejected);
+            Assert.AreEqual(ApplicationResult.AutoRejected, appResult);
         }
 
         [Test]
@@ -32,7 +32,9 @@ namespace JobApplicationLibrary.UnitTest
         {
             // Arrange
             var mockValidator = new Mock<IIdentityValidator>();
+            mockValidator.DefaultValue = DefaultValue.Mock;
             mockValidator.Setup(i => i.IsValid(It.IsAny<string>())).Returns(true);
+            mockValidator.Setup(i => i.CountryDataProvider.CountryData.Country).Returns("Azerbaijan");
 
             var evaluator = new ApplicationEvaluator(mockValidator.Object);
             var form = new JobApplication()
@@ -48,7 +50,7 @@ namespace JobApplicationLibrary.UnitTest
             var appResult = evaluator.Evaluate(form);
 
             // Assert
-            Assert.AreEqual(appResult, ApplicationResult.AutoRejected);
+            Assert.AreEqual(ApplicationResult.AutoRejected, appResult);
         }
 
         [Test]
@@ -56,7 +58,9 @@ namespace JobApplicationLibrary.UnitTest
         {
             // Arrange
             var mockValidator = new Mock<IIdentityValidator>();
+            mockValidator.DefaultValue = DefaultValue.Mock;
             mockValidator.Setup(i => i.IsValid(It.IsAny<string>())).Returns(true);
+            mockValidator.Setup(i => i.CountryDataProvider.CountryData.Country).Returns("Azerbaijan");
 
             var evaluator = new ApplicationEvaluator(mockValidator.Object);
             var form = new JobApplication()
@@ -73,7 +77,7 @@ namespace JobApplicationLibrary.UnitTest
             var appResult = evaluator.Evaluate(form);
 
             // Assert
-            Assert.AreEqual(appResult, ApplicationResult.AutoAccepted);
+            Assert.AreEqual(ApplicationResult.AutoAccepted, appResult);
         }
 
         [Test]
@@ -81,8 +85,10 @@ namespace JobApplicationLibrary.UnitTest
         {
             // Arrange
             var mockValidator = new Mock<IIdentityValidator>(MockBehavior.Strict);
+            mockValidator.DefaultValue = DefaultValue.Mock;
             mockValidator.Setup(i => i.IsValid(It.IsAny<string>())).Returns(false);
             mockValidator.Setup(i => i.CheckConnectionToRemoteServer()).Returns(false);
+            mockValidator.Setup(i => i.CountryDataProvider.CountryData.Country).Returns("Azerbaijan");
 
             var evaluator = new ApplicationEvaluator(mockValidator.Object);
             var form = new JobApplication()
@@ -97,7 +103,38 @@ namespace JobApplicationLibrary.UnitTest
             var appResult = evaluator.Evaluate(form);
 
             // Assert
-            Assert.AreEqual(appResult, ApplicationResult.TransferredToHR);
+            Assert.AreEqual(ApplicationResult.TransferredToHR, appResult);
+        }
+
+        [Test]
+        public void Application_WithOfficeLocation_TransferredToCTO()
+        {
+            // Arrange
+            var mockValidator = new Mock<IIdentityValidator>();
+            mockValidator.Setup(i => i.CountryDataProvider.CountryData.Country).Returns("Turkey");
+
+            //var mockCountryData = new Mock<ICountryData>();
+            //mockCountryData.Setup(i => i.Country).Returns("Turkey");
+
+            //var mockProvider = new Mock<ICountryDataProvider>();
+            //mockProvider.Setup(i => i.CountryData).Returns(mockCountryData.Object);
+
+            //mockValidator.Setup(i => i.CountryDataProvider).Returns(mockProvider.Object);
+
+            var evaluator = new ApplicationEvaluator(mockValidator.Object);
+            var form = new JobApplication()
+            {
+                Applicant = new Applicant()
+                {
+                    Age = 19
+                }
+            };
+
+            // Action
+            var appResult = evaluator.Evaluate(form);
+
+            // Assert
+            Assert.AreEqual(ApplicationResult.TransferredToCTO, appResult);
         }
     }
 }
