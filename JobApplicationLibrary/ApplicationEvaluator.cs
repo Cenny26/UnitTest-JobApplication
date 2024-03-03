@@ -1,4 +1,5 @@
-﻿using JobApplicationLibrary.Models;
+﻿using JobApplicationLibrary.Enums;
+using JobApplicationLibrary.Models;
 using JobApplicationLibrary.Services;
 
 namespace JobApplicationLibrary
@@ -17,27 +18,47 @@ namespace JobApplicationLibrary
 
         public ApplicationResult Evaluate(JobApplication form)
         {
+            #region Application_WithNullApplicant_ThrowsArgumentNullException
+            if (form.Applicant is null)
+                throw new ArgumentNullException();
+            #endregion
+
+            #region Application_WithUnderAge_TransferredToAutoRejected
             if (form.Applicant.Age < minAge)
                 return ApplicationResult.AutoRejected;
+            #endregion
 
+            #region Application_WithOver50_ValidationModeToDetailed
             identityValidator.ValidationMode = form.Applicant.Age > 50 ? ValidationMode.Detailed : ValidationMode.Detailed;
+            #endregion
 
+            #region Application_WithOfficeLocation_TransferredToCTO
             if (identityValidator.CountryDataProvider.CountryData.Country != "Azerbaijan")
                 return ApplicationResult.TransferredToCTO;
+            #endregion
 
+            #region Application_WithDefaultValue_IsValidCalled & Application_WithYoungAge_IsValidNeverCalled
             var validIdentity = identityValidator.IsValid(form.Applicant.IdentityNumber);
+            #endregion
 
+            #region Application_WithInValidIdentityNumber_TransferredToHR
             if (!validIdentity)
                 return ApplicationResult.TransferredToHR;
+            #endregion
 
             var sr = GetTechStackSimilarityRate(form.TechStackList);
 
+            #region Application_WithNoTechStack_TransferredToAutoRejected
             if (sr < 25)
                 return ApplicationResult.AutoRejected;
+            #endregion
+
+            #region Application_WithTechStackOver75P_TransferredToAutoAccepted
             if (sr > 75 && form.YearsOfExperience >= autoAcceptedYearOfExperience)
                 return ApplicationResult.AutoAccepted;
+            #endregion
 
-            return ApplicationResult.AutoAccepted;
+            return ApplicationResult.TryAgain;
         }
 
         private int GetTechStackSimilarityRate(List<string> techStacks)
@@ -49,14 +70,5 @@ namespace JobApplicationLibrary
 
             return (int)((double)matchedCount / techStackList.Count) * 100;
         }
-    }
-
-    public enum ApplicationResult
-    {
-        AutoRejected,
-        TransferredToHR,
-        TransferredToLead,
-        TransferredToCTO,
-        AutoAccepted
     }
 }
